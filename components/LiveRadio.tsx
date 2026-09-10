@@ -5,6 +5,11 @@ import { Play, Pause, Volume2, VolumeX, Radio, AlertCircle } from 'lucide-react'
 
 const STATIONS = [
   {
+    name: 'Rey Ali (Valledupar)',
+    desc: 'Emisora Online 100% Vallenato (Experimental)',
+    url: 'https://stream.zeno.fm/reyali-radio-en-vivo',
+  },
+  {
     name: 'Radiónica',
     desc: 'Rock, Indie & Cultura Joven (RTVC)',
     url: 'https://rtvc-radionica.streamguys1.com/radionica-mp3',
@@ -16,7 +21,7 @@ const STATIONS = [
   },
   {
     name: 'La X 103.9 FM',
-    desc: 'Pop, Rock & Música Electrónica',
+    desc: 'Pop, Rock & Electrónica',
     url: 'https://stream.zeno.fm/wv8p3z46gceuv',
   },
 ];
@@ -125,12 +130,12 @@ export default function LiveRadio() {
       {hasError && (
         <div className="flex items-center gap-2 text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-xl">
           <AlertCircle className="w-4 h-4 shrink-0" />
-          <span>La emisora no está transmitiendo en este momento. Selecciona otra.</span>
+          <span>La emisora seleccionada no está transmitiendo en este momento o bloquea el acceso. Prueba con otra.</span>
         </div>
       )}
 
       {/* Selector de Canales */}
-      <div className="grid grid-cols-3 gap-2 border-t border-slate-800/80 pt-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 border-t border-slate-800/80 pt-4">
         {STATIONS.map((station) => (
           <button
             key={station.name}
@@ -148,7 +153,7 @@ export default function LiveRadio() {
 
       {/* Control de Volumen */}
       <div className="flex items-center justify-between border-t border-slate-800/80 pt-4">
-        <span className="text-xs text-slate-500 font-mono">Stream Directo MP3 // Colombia</span>
+        <span className="text-xs text-slate-500 font-mono">Stream Directo // Colombia</span>
         <div className="flex items-center gap-3">
           <button onClick={toggleMute} className="text-slate-400 hover:text-slate-200 transition-colors">
             {isMuted || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
