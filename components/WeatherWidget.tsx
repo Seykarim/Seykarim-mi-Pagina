@@ -1,123 +1,86 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import {
-  Sun,
-  Cloud,
-  CloudRain,
-  CloudSnow,
-  CloudLightning,
-  CloudFog,
-  Loader2,
-  MapPin,
-} from "lucide-react";
+import { useEffect, useState } from 'react';
+import { Sun, Cloud, CloudRain, SunMedium } from 'lucide-react';
 
-// Coordenadas por defecto: Bogota, Colombia.
-// Cambia estos valores si quieres mostrar el clima de otra ciudad.
-const LOCATION_NAME = "Bogota, Colombia";
-const LATITUDE = 4.711;
-const LONGITUDE = -74.0721;
-
-type WeatherData = {
-  temperature: number;
-  windspeed: number;
-  weathercode: number;
-};
-
-function getWeatherInfo(code: number): { label: string; Icon: typeof Sun } {
-  if (code === 0) return { label: "Despejado", Icon: Sun };
-  if ([1, 2, 3].includes(code)) return { label: "Parcialmente nublado", Icon: Cloud };
-  if ([45, 48].includes(code)) return { label: "Neblina", Icon: CloudFog };
-  if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(code))
-    return { label: "Lluvia", Icon: CloudRain };
-  if ([71, 73, 75, 77, 85, 86].includes(code))
-    return { label: "Nieve", Icon: CloudSnow };
-  if ([95, 96, 99].includes(code))
-    return { label: "Tormenta electrica", Icon: CloudLightning };
-  return { label: "Clima variable", Icon: Cloud };
+interface CityWeather {
+  name: string;
+  temp: number;
+  code: number;
 }
 
+const CITIES = [
+  { name: 'Valledupar', lat: 10.4631, lon: -73.2532 },
+  { name: 'Bogotá', lat: 4.6097, lon: -74.0817 },
+  { name: 'Medellín', lat: 6.2518, lon: -75.5636 },
+  { name: 'Santa Marta', lat: 11.2408, lon: -74.1990 }
+];
+
 export default function WeatherWidget() {
-  const [data, setData] = useState<WeatherData | null>(null);
-  const [status, setStatus] = useState<"loading" | "error" | "ready">(
-    "loading"
-  );
+  const [weatherData, setWeatherData] = useState<CityWeather[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let isMounted = true;
-
     async function fetchWeather() {
       try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}&current=temperature_2m,windspeed_10m,weathercode&timezone=auto`;
-        const res = await fetch(url);
-
-        if (!res.ok) {
-          throw new Error(`Open-Meteo respondio con estado ${res.status}`);
-        }
-
-        const json = await res.json();
-
-        if (isMounted) {
-          setData({
-            temperature: json.current.temperature_2m,
-            windspeed: json.current.windspeed_10m,
-            weathercode: json.current.weathercode,
-          });
-          setStatus("ready");
-        }
-      } catch (err) {
-        console.error("Error cargando el clima:", err);
-        if (isMounted) setStatus("error");
+        const results = await Promise.all(
+          CITIES.map(async (city) => {
+            const res = await fetch(
+              `https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current=temperature_2m,weather_code`
+            );
+            const data = await res.json();
+            return {
+              name: city.name,
+              temp: Math.round(data.current.temperature_2m),
+              code: data.current.weather_code
+            };
+          })
+        );
+        setWeatherData(results);
+      } catch {
+        // Fallback silencioso en caso de fallo de red
+      } finally {
+        setLoading(false);
       }
     }
-
     fetchWeather();
-
-    return () => {
-      isMounted = false;
-    };
   }, []);
 
-  if (status === "loading") {
+  const getWeatherIcon = (code: number) => {
+    if (code === 0) return <Sun className="w-6 h-6 text-amber-400" />;
+    if (code >= 1 && code <= 3) return <SunMedium className="w-6 h-6 text-yellow-300" />;
+    if (code >= 45 && code <= 48) return <Cloud className="w-6 h-6 text-slate-400" />;
+    if (code >= 51) return <CloudRain className="w-6 h-6 text-blue-400" />;
+    return <Sun className="w-6 h-6 text-amber-400" />;
+  };
+
+  if (loading) {
     return (
-      <div className="glass-card p-8 flex items-center justify-center gap-3 h-32 text-zinc-400 text-sm">
-        <Loader2 size={18} className="animate-spin" />
-        Cargando clima...
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="h-28 rounded-xl bg-slate-800/40 animate-pulse border border-slate-700/50" />
+        ))}
       </div>
     );
   }
-
-  if (status === "error" || !data) {
-    return (
-      <div className="glass-card p-8 flex items-center justify-center h-32 text-zinc-500 text-sm">
-        No se pudo cargar el clima en este momento.
-      </div>
-    );
-  }
-
-  const { label, Icon } = getWeatherInfo(data.weathercode);
 
   return (
-    <div className="glass-card p-6 md:p-8 flex items-center gap-6">
-      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-neon-blue to-neon-cyan flex items-center justify-center shrink-0">
-        <Icon size={28} className="text-white" />
-      </div>
-
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center gap-1 text-xs text-zinc-500">
-          <MapPin size={12} />
-          {LOCATION_NAME}
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {weatherData.map((city) => (
+        <div
+          key={city.name}
+          className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 backdrop-blur-md flex flex-col justify-between hover:border-slate-700 transition-colors"
+        >
+          <div className="flex items-center justify-between">
+            <span className="font-medium text-slate-200 text-sm">{city.name}</span>
+            {getWeatherIcon(city.code)}
+          </div>
+          <div className="mt-3 flex items-baseline gap-1">
+            <span className="text-3xl font-bold text-white">{city.temp}</span>
+            <span className="text-cyan-400 font-semibold text-lg">°C</span>
+          </div>
         </div>
-        <div className="flex items-baseline gap-2">
-          <span className="text-3xl font-display font-bold text-gradient">
-            {Math.round(data.temperature)}°C
-          </span>
-          <span className="text-sm text-zinc-400">{label}</span>
-        </div>
-        <span className="text-xs text-zinc-500">
-          Viento: {Math.round(data.windspeed)} km/h
-        </span>
-      </div>
+      ))}
     </div>
   );
 }
