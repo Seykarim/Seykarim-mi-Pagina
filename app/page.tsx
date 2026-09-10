@@ -2,11 +2,16 @@ import WeatherWidget from '@/components/WeatherWidget';
 import MarketWidget from '@/components/MarketWidget';
 import AudioPlaylist from '@/components/AudioPlaylist';
 import ColombiaGallery from '@/components/ColombiaGallery';
+import HeaderStatus from '@/components/HeaderStatus';
+import EngineeringSkills from '@/components/EngineeringSkills';
 
 export default function Home() {
   return (
     <main className="min-h-screen p-4 md:p-8 lg:p-12 max-w-[1440px] mx-auto space-y-8">
-      {/* Encabezado Principal Panorámico */}
+      {/* Barra Superior de Estado y Telemetría */}
+      <HeaderStatus />
+
+      {/* Encabezado Principal */}
       <header className="p-8 md:p-10 rounded-3xl bg-slate-900/80 border border-slate-800/80 backdrop-blur-lg shadow-2xl relative overflow-hidden">
         <div className="absolute -top-24 -right-24 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -28,6 +33,9 @@ export default function Home() {
         </div>
       </header>
 
+      {/* Módulo de Competencias en Ingeniería */}
+      <EngineeringSkills />
+
       {/* Sección Mercado & Divisas */}
       <section className="space-y-3">
         <h2 className="text-xs font-mono uppercase tracking-wider text-slate-500">Mercado & Divisas (Colombia)</h2>
@@ -44,7 +52,7 @@ export default function Home() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-xs font-mono uppercase tracking-wider text-slate-500">Atmósfera & Audio Ambient</h2>
+            <h2 className="text-xs font-mono uppercase tracking-wider text-slate-500">Atmósfera & Audio Ambient (Bucle Infinito)</h2>
             <AudioPlaylist />
           </section>
         </div>
