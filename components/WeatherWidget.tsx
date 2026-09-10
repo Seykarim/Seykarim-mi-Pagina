@@ -1,86 +1,68 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Sun, Cloud, CloudRain, SunMedium } from 'lucide-react';
+import { CloudRain, Thermometer, CloudSun } from 'lucide-react';
 
-interface CityWeather {
-  name: string;
+interface WeatherData {
+  city: string;
   temp: number;
-  code: number;
+  precipProb: number;
 }
 
-const CITIES = [
-  { name: 'Valledupar', lat: 10.4631, lon: -73.2532 },
-  { name: 'Bogotá', lat: 4.6097, lon: -74.0817 },
-  { name: 'Medellín', lat: 6.2518, lon: -75.5636 },
-  { name: 'Santa Marta', lat: 11.2408, lon: -74.1990 }
-];
-
 export default function WeatherWidget() {
-  const [weatherData, setWeatherData] = useState<CityWeather[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [weather, setWeather] = useState<WeatherData | null>(null);
 
   useEffect(() => {
     async function fetchWeather() {
       try {
-        const results = await Promise.all(
-          CITIES.map(async (city) => {
-            const res = await fetch(
-              `https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current=temperature_2m,weather_code`
-            );
-            const data = await res.json();
-            return {
-              name: city.name,
-              temp: Math.round(data.current.temperature_2m),
-              code: data.current.weather_code
-            };
-          })
+        // Coordenadas de Valledupar (Lat: 10.4631, Lon: -73.2532)
+        const res = await fetch(
+          'https://api.open-meteo.com/v1/forecast?latitude=10.4631&longitude=-73.2532&current_weather=true&hourly=precipitation_probability&forecast_days=1',
+          { next: { revalidate: 3600 } }
         );
-        setWeatherData(results);
-      } catch {
-        // Fallback silencioso en caso de fallo de red
-      } finally {
-        setLoading(false);
+        const data = await res.json();
+        
+        const currentHour = new Date().getHours();
+        const precipProb = data.hourly?.precipitation_probability[currentHour] || 0;
+
+        setWeather({
+          city: 'Valledupar',
+          temp: Math.round(data.current_weather.temperature),
+          precipProb,
+        });
+      } catch (err) {
+        console.error('Error obteniendo clima:', err);
       }
     }
+
     fetchWeather();
+    const interval = setInterval(fetchWeather, 3600000); // Refresco cada 1 hora
+    return () => clearInterval(interval);
   }, []);
 
-  const getWeatherIcon = (code: number) => {
-    if (code === 0) return <Sun className="w-6 h-6 text-amber-400" />;
-    if (code >= 1 && code <= 3) return <SunMedium className="w-6 h-6 text-yellow-300" />;
-    if (code >= 45 && code <= 48) return <Cloud className="w-6 h-6 text-slate-400" />;
-    if (code >= 51) return <CloudRain className="w-6 h-6 text-blue-400" />;
-    return <Sun className="w-6 h-6 text-amber-400" />;
-  };
-
-  if (loading) {
-    return (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="h-28 rounded-xl bg-slate-800/40 animate-pulse border border-slate-700/50" />
-        ))}
-      </div>
-    );
-  }
-
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {weatherData.map((city) => (
-        <div
-          key={city.name}
-          className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 backdrop-blur-md flex flex-col justify-between hover:border-slate-700 transition-colors"
-        >
-          <div className="flex items-center justify-between">
-            <span className="font-medium text-slate-200 text-sm">{city.name}</span>
-            {getWeatherIcon(city.code)}
-          </div>
-          <div className="mt-3 flex items-baseline gap-1">
-            <span className="text-3xl font-bold text-white">{city.temp}</span>
-            <span className="text-cyan-400 font-semibold text-lg">°C</span>
+    <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-md flex items-center justify-between">
+      <div className="flex items-center gap-4">
+        <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
+          <CloudSun className="w-8 h-8" />
+        </div>
+        <div>
+          <h3 className="text-lg font-bold text-slate-100">{weather?.city || 'Valledupar'}</h3>
+          <div className="flex items-center gap-3 text-xs text-slate-400 mt-1">
+            <span className="flex items-center gap-1">
+              <Thermometer className="w-3.5 h-3.5 text-cyan-400" />
+              {weather ? `${weather.temp}°C` : '--'}
+            </span>
+            <span className="flex items-center gap-1">
+              <CloudRain className="w-3.5 h-3.5 text-blue-400" />
+              Prob. Lluvia: {weather ? `${weather.precipProb}%` : '--'}
+            </span>
           </div>
         </div>
-      ))}
+      </div>
+      <span className="text-[10px] font-mono text-slate-500 border border-slate-800 px-2.5 py-1 rounded-full">
+        Refresco: 1h
+      </span>
     </div>
   );
 }
