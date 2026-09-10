@@ -1,7 +1,14 @@
-const config = {
+export default {
   plugins: {
-    "@tailwindcss/postcss": {},
+    tailwindcss: {},
+    autoprefixer: {},
   },
 };
-
-export default config;
+EOFrm -f postcss.config.js postcss.config.ts postcss.config.mjs
+cat << 'EOF' > postcss.config.mjs
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+};
