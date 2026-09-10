@@ -1,23 +1,18 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Volume2, VolumeX, Radio, AlertCircle } from 'lucide-react';
 
 const STATIONS = [
   {
-    name: 'Rey Ali (Valledupar)',
-    desc: 'Emisora Online 100% Vallenato (Experimental)',
-    url: 'https://stream.zeno.fm/reyali-radio-en-vivo',
-  },
-  {
     name: 'Radiónica',
-    desc: 'Rock, Indie & Cultura Joven (RTVC)',
-    url: 'https://rtvc-radionica.streamguys1.com/radionica-mp3',
+    desc: 'Rock, Indie & Cultura Joven (RTVC Oficial)',
+    url: 'https://stream.rtvc.gov.co/Radionica_Bogota/stream/1/',
   },
   {
     name: 'Radio Nacional',
-    desc: 'Música Colombiana & Noticias (RTVC)',
-    url: 'https://rtvc-radionacional.streamguys1.com/radionacional-mp3',
+    desc: 'Folklore & Noticias (RTVC Oficial)',
+    url: 'https://stream.rtvc.gov.co/Radionacional_Bogota/stream/1/',
   },
   {
     name: 'La X 103.9 FM',
@@ -34,11 +29,15 @@ export default function LiveRadio() {
   const [hasError, setHasError] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const handleStationChange = (station: typeof STATIONS[0]) => {
-    setSelectedStation(station);
-    setIsPlaying(false);
-    setHasError(false);
-  };
+  // Recarga limpia del audio en el DOM cuando cambia la emisora
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.load();
+      setIsPlaying(false);
+      setHasError(false);
+    }
+  }, [selectedStation]);
 
   const togglePlay = async () => {
     if (!audioRef.current) return;
@@ -130,16 +129,16 @@ export default function LiveRadio() {
       {hasError && (
         <div className="flex items-center gap-2 text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-xl">
           <AlertCircle className="w-4 h-4 shrink-0" />
-          <span>La emisora seleccionada no está transmitiendo en este momento o bloquea el acceso. Prueba con otra.</span>
+          <span>No fue posible conectar con el stream. Prueba con otra emisora.</span>
         </div>
       )}
 
       {/* Selector de Canales */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 border-t border-slate-800/80 pt-4">
+      <div className="grid grid-cols-3 gap-2 border-t border-slate-800/80 pt-4">
         {STATIONS.map((station) => (
           <button
             key={station.name}
-            onClick={() => handleStationChange(station)}
+            onClick={() => setSelectedStation(station)}
             className={`p-2 rounded-xl border text-left text-xs transition-all ${
               selectedStation.name === station.name
                 ? 'bg-purple-500/10 border-purple-500/40 text-purple-300 font-semibold'
