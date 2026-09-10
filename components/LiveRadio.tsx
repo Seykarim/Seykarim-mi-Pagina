@@ -3,22 +3,52 @@
 import { useState, useRef } from 'react';
 import { Play, Pause, Volume2, VolumeX, Radio } from 'lucide-react';
 
+const STATIONS = [
+  {
+    name: 'Groove Salad',
+    desc: 'Ambient & Downtempo Chill',
+    url: 'https://ice1.somafm.com/groovesalad-128-mp3',
+  },
+  {
+    name: 'ChillOut',
+    desc: 'Lofi & Ambient Beats',
+    url: 'https://ice1.somafm.com/chill-128-mp3',
+  },
+  {
+    name: 'Def Con Radio',
+    desc: 'Hacker / Synthwave / Electro',
+    url: 'https://ice1.somafm.com/defcon-128-mp3',
+  },
+];
+
 export default function LiveRadio() {
+  const [selectedStation, setSelectedStation] = useState(STATIONS[0]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(0.8);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const STREAM_URL = 'https://coderadio-admin.freecodecamp.org/radio/8010/radio.mp3';
+  const handleStationChange = (station: typeof STATIONS[0]) => {
+    setSelectedStation(station);
+    setIsPlaying(false);
+    if (audioRef.current) {
+      audioRef.current.src = station.url;
+      audioRef.current.load();
+    }
+  };
 
   const togglePlay = () => {
     if (!audioRef.current) return;
+
     if (isPlaying) {
       audioRef.current.pause();
+      setIsPlaying(false);
     } else {
-      audioRef.current.play();
+      audioRef.current
+        .play()
+        .then(() => setIsPlaying(true))
+        .catch(() => setIsPlaying(false));
     }
-    setIsPlaying(!isPlaying);
   };
 
   const toggleMute = () => {
@@ -37,34 +67,61 @@ export default function LiveRadio() {
   };
 
   return (
-    <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-md flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
-      <audio ref={audioRef} src={STREAM_URL} preload="none" />
+    <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-md flex flex-col gap-6 shadow-xl">
+      <audio ref={audioRef} src={selectedStation.url} preload="none" />
 
-      <div className="flex items-center gap-4">
-        <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400">
-          <Radio className="w-8 h-8 animate-pulse" />
-        </div>
-        <div>
-          <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-slate-100 text-lg">Code Radio</h3>
-            <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-semibold border border-emerald-500/20">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              EN VIVO
-            </span>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400">
+            <Radio className={`w-8 h-8 ${isPlaying ? 'animate-pulse text-purple-400' : 'text-slate-500'}`} />
           </div>
-          <p className="text-slate-400 text-sm">Lo-Fi / Chill / Synthwave 24/7</p>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-slate-100 text-base md:text-lg">{selectedStation.name}</h3>
+              <span
+                className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold border ${
+                  isPlaying
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                    : 'bg-slate-800 text-slate-400 border-slate-700'
+                }`}
+              >
+                <span className={`w-2 h-2 rounded-full ${isPlaying ? 'bg-emerald-400 animate-ping' : 'bg-slate-500'}`} />
+                {isPlaying ? 'EN VIVO' : 'PAUSADO'}
+              </span>
+            </div>
+            <p className="text-slate-400 text-xs md:text-sm">{selectedStation.desc}</p>
+          </div>
         </div>
-      </div>
 
-      <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
         <button
           onClick={togglePlay}
-          className="p-4 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:opacity-90 transition-all shadow-lg shadow-purple-500/25 flex items-center justify-center"
+          className="p-4 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:opacity-90 transition-all shadow-lg shadow-purple-500/25 shrink-0"
           aria-label={isPlaying ? 'Pausar' : 'Reproducir'}
         >
           {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6 ml-0.5" />}
         </button>
+      </div>
 
+      {/* Selector de Canales */}
+      <div className="grid grid-cols-3 gap-2 border-t border-slate-800/80 pt-4">
+        {STATIONS.map((station) => (
+          <button
+            key={station.name}
+            onClick={() => handleStationChange(station)}
+            className={`p-2 rounded-xl border text-left text-xs transition-all ${
+              selectedStation.name === station.name
+                ? 'bg-purple-500/10 border-purple-500/40 text-purple-300 font-semibold'
+                : 'bg-slate-800/40 border-slate-800 text-slate-400 hover:border-slate-700'
+            }`}
+          >
+            <div className="truncate">{station.name}</div>
+          </button>
+        ))}
+      </div>
+
+      {/* Control de Volumen */}
+      <div className="flex items-center justify-between border-t border-slate-800/80 pt-4">
+        <span className="text-xs text-slate-500 font-mono">Stream MP3</span>
         <div className="flex items-center gap-3">
           <button onClick={toggleMute} className="text-slate-400 hover:text-slate-200 transition-colors">
             {isMuted || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
@@ -76,7 +133,7 @@ export default function LiveRadio() {
             step="0.01"
             value={isMuted ? 0 : volume}
             onChange={handleVolumeChange}
-            className="w-24 accent-purple-500 bg-slate-800 rounded-lg cursor-pointer"
+            className="w-20 md:w-24 accent-purple-500 bg-slate-800 rounded-lg cursor-pointer"
           />
         </div>
       </div>
