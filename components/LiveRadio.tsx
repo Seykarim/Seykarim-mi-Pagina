@@ -5,19 +5,19 @@ import { Play, Pause, Volume2, VolumeX, Radio } from 'lucide-react';
 
 const STATIONS = [
   {
-    name: 'Groove Salad',
-    desc: 'Ambient & Downtempo Chill',
-    url: 'https://ice1.somafm.com/groovesalad-128-mp3',
+    name: 'Radiónica',
+    desc: 'Rock, Indie & Cultura Joven (RTVC)',
+    url: 'https://stream.rtvc.gov.co/Radionica_Bogota/stream/1/',
   },
   {
-    name: 'ChillOut',
-    desc: 'Lofi & Ambient Beats',
-    url: 'https://ice1.somafm.com/chill-128-mp3',
+    name: 'Radio Nacional',
+    desc: 'Música Colombiana, Folklore & Noticias',
+    url: 'https://stream.rtvc.gov.co/Radionacional_Bogota/stream/1/',
   },
   {
-    name: 'Def Con Radio',
-    desc: 'Hacker / Synthwave / Electro',
-    url: 'https://ice1.somafm.com/defcon-128-mp3',
+    name: 'Vibra Bogotá',
+    desc: 'Pop en Español & Clásicos (104.9 FM)',
+    url: 'https://stream.zeno.fm/f3wvbbsc338uv',
   },
 ];
 
@@ -114,14 +114,14 @@ export default function LiveRadio() {
                 : 'bg-slate-800/40 border-slate-800 text-slate-400 hover:border-slate-700'
             }`}
           >
-            <div className="truncate">{station.name}</div>
+            <div className="truncate font-medium">{station.name}</div>
           </button>
         ))}
       </div>
 
       {/* Control de Volumen */}
       <div className="flex items-center justify-between border-t border-slate-800/80 pt-4">
-        <span className="text-xs text-slate-500 font-mono">Stream MP3</span>
+        <span className="text-xs text-slate-500 font-mono">Stream Directo // Colombia</span>
         <div className="flex items-center gap-3">
           <button onClick={toggleMute} className="text-slate-400 hover:text-slate-200 transition-colors">
             {isMuted || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
