@@ -44,18 +44,35 @@ export default function AudioPlaylist() {
   const [isMuted, setIsMuted] = useState(false);
   const [isContinuous, setIsContinuous] = useState(true); // Bucle infinito activado por defecto
   const [volume, setVolume] = useState(0.7);
+  const [position, setPosition] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [failed, setFailed] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const currentTrack = PLAYLIST[currentIndex];
+
+  // Recupera el volumen guardado
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('audio-volume');
+      if (saved !== null) setVolume(Number(saved));
+    } catch {}
+  }, []);
 
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = volume;
     }
+    try {
+      localStorage.setItem('audio-volume', String(volume));
+    } catch {}
   }, [volume]);
 
   const playTrack = (index: number, shouldPlay: boolean = true) => {
     setCurrentIndex(index);
+    setPosition(0);
+    setDuration(0);
+    setFailed(false);
     if (audioRef.current) {
       audioRef.current.src = PLAYLIST[index].url;
       audioRef.current.load();
@@ -101,6 +118,16 @@ export default function AudioPlaylist() {
     }
   };
 
+  // Si una pista no carga, salta a la siguiente
+  const handleError = () => {
+    if (!isPlaying) return;
+    setFailed(true);
+    setTimeout(() => playTrack((currentIndex + 1) % PLAYLIST.length, true), 1500);
+  };
+
+  const formatTime = (secs: number) =>
+    Number.isFinite(secs) ? `${Math.floor(secs / 60)}:${String(Math.floor(secs % 60)).padStart(2, '0')}` : '0:00';
+
   const toggleMute = () => {
     if (!audioRef.current) return;
     audioRef.current.muted = !isMuted;
@@ -113,7 +140,12 @@ export default function AudioPlaylist() {
         ref={audioRef}
         src={currentTrack.url}
         onEnded={handleEnded}
-        preload="metadata"
+        onError={handleError}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        onTimeUpdate={(e) => setPosition(e.currentTarget.currentTime)}
+        onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
+        preload="none"
       />
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -134,7 +166,9 @@ export default function AudioPlaylist() {
                 Pista {currentIndex + 1} de {PLAYLIST.length}
               </span>
             </div>
-            <p className="text-slate-400 text-xs md:text-sm">{currentTrack.artist}</p>
+            <p className="text-slate-400 text-xs md:text-sm">
+              {failed ? 'No se pudo cargar esta pista, probando la siguiente…' : currentTrack.artist}
+            </p>
           </div>
         </div>
 
@@ -178,6 +212,25 @@ export default function AudioPlaylist() {
         </div>
       </div>
 
+      {/* Barra de progreso */}
+      <div className="flex items-center gap-3">
+        <span className="w-10 text-right font-mono text-[11px] text-slate-500">{formatTime(position)}</span>
+        <input
+          type="range"
+          min="0"
+          max={duration || 0}
+          step="0.1"
+          value={position}
+          disabled={!duration}
+          onChange={(e) => {
+            if (audioRef.current) audioRef.current.currentTime = Number(e.target.value);
+          }}
+          aria-label="Posición de la pista"
+          className="flex-1 accent-purple-500 cursor-pointer disabled:cursor-default"
+        />
+        <span className="w-10 font-mono text-[11px] text-slate-500">{formatTime(duration)}</span>
+      </div>
+
       {/* Lista de Pistas en Cuadrícula */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 border-t border-slate-800/80 pt-4">
         {PLAYLIST.map((track, idx) => (
@@ -211,7 +264,7 @@ export default function AudioPlaylist() {
         </div>
 
         <div className="flex items-center gap-3">
-          <button onClick={toggleMute} className="text-slate-400 hover:text-slate-200 transition-colors">
+          <button onClick={toggleMute} aria-label={isMuted ? 'Activar sonido' : 'Silenciar'} className="text-slate-400 hover:text-slate-200 transition-colors">
             {isMuted || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
           </button>
           <input
@@ -221,6 +274,7 @@ export default function AudioPlaylist() {
             step="0.01"
             value={isMuted ? 0 : volume}
             onChange={(e) => setVolume(parseFloat(e.target.value))}
+            aria-label="Volumen"
             className="w-20 md:w-24 accent-purple-500 bg-slate-800 rounded-lg cursor-pointer"
           />
         </div>

@@ -2,94 +2,102 @@ import WeatherWidget from '@/components/WeatherWidget';
 import MarketWidget from '@/components/MarketWidget';
 import AudioPlaylist from '@/components/AudioPlaylist';
 import ColombiaGallery from '@/components/ColombiaGallery';
-import HeaderStatus from '@/components/HeaderStatus';
+import SiteNav from '@/components/SiteNav';
+import Hero from '@/components/Hero';
 import EngineeringSkills from '@/components/EngineeringSkills';
 import CircuitBackground from '@/components/CircuitBackground';
 import IoTTelemetry from '@/components/IoTTelemetry';
 import SolarCalculator from '@/components/SolarCalculator';
+import ProjectsSection from '@/components/ProjectsSection';
+import ContactSection from '@/components/ContactSection';
+
+function SectionHead({ eyebrow, title, desc }: { eyebrow: string; title: string; desc?: string }) {
+  return (
+    <div className="max-w-3xl space-y-2">
+      <span className="font-mono text-xs uppercase tracking-[0.15em] text-cyan-400">{eyebrow}</span>
+      <h2 className="text-2xl font-extrabold tracking-tight text-slate-100 md:text-3xl">{title}</h2>
+      {desc && <p className="text-slate-400">{desc}</p>}
+    </div>
+  );
+}
 
 export default function Home() {
   return (
-    <main className="relative min-h-screen bg-slate-950 text-slate-100 overflow-x-hidden p-4 md:p-8 lg:p-12 max-w-[1440px] mx-auto space-y-8">
+    <>
       {/* Canvas interactivo de circuitos al fondo */}
       <CircuitBackground />
 
-      {/* Capa principal sobre el lienzo animado */}
-      <div className="relative z-10 space-y-8">
-        {/* Barra Superior de Estado y Telemetría */}
-        <HeaderStatus />
+      {/* Barra de navegación fija con hora de Colombia */}
+      <SiteNav />
 
+      <main className="relative z-10 mx-auto min-h-screen max-w-[1440px] space-y-16 overflow-x-hidden p-4 text-slate-100 md:p-8 lg:p-12">
         {/* Encabezado Principal */}
-        <header className="p-8 md:p-10 rounded-3xl bg-slate-900/80 border border-slate-800/80 backdrop-blur-lg shadow-2xl relative overflow-hidden">
-          <div className="absolute -top-24 -right-24 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
-
-          <div className="relative z-10 space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
-              <span>Pueblo Arhuaco</span>
-              <span>•</span>
-              <span>Colombia</span>
-            </div>
-            
-            <h1 className="text-2xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-100">
-              Seykarim R. Mestre Zalabata
-            </h1>
-            
-            <p className="text-base md:text-lg font-medium text-slate-400 max-w-3xl">
-              Ingeniero Electrónico // Innovación tecnológica, monitoreo de datos y desarrollo web de alto rendimiento.
-            </p>
-          </div>
-        </header>
+        <Hero />
 
         {/* Módulo de Competencias en Ingeniería */}
-        <EngineeringSkills />
+        <section id="sobre-mi" className="scroll-mt-24 space-y-6">
+          <SectionHead
+            eyebrow="01 · Sobre mí"
+            title="Tecnología con raíz territorial"
+            desc="Ingeniero electrónico del pueblo Arhuaco. Diseño soluciones de hardware y software pensadas para funcionar donde más se necesitan: zonas rurales, con energía limitada y conectividad intermitente."
+          />
+          <EngineeringSkills />
+        </section>
+
+        {/* Proyectos destacados + repositorios de GitHub */}
+        <section id="proyectos" className="scroll-mt-24 space-y-6">
+          <SectionHead
+            eyebrow="02 · Proyectos"
+            title="Lo que construyo"
+            desc="Cada proyecto destacado tiene una demo interactiva en esta misma página."
+          />
+          <ProjectsSection />
+        </section>
 
         {/* Telemetría IoT Sierra Nevada */}
-        <section className="space-y-3">
-          <h2 className="text-xs font-mono uppercase tracking-wider text-slate-500">Monitoreo IoT en Campo</h2>
+        <section id="telemetria" className="scroll-mt-24 space-y-6">
+          <SectionHead eyebrow="03 · Monitoreo IoT en campo" title="Telemetría · Sierra Nevada" />
           <IoTTelemetry />
         </section>
 
         {/* Calculadora Fotovoltaica Regional */}
-        <section className="space-y-3">
-          <h2 className="text-xs font-mono uppercase tracking-wider text-slate-500">Dimensionamiento Energético</h2>
+        <section id="solar" className="scroll-mt-24 space-y-6">
+          <SectionHead
+            eyebrow="04 · Dimensionamiento energético"
+            title="Calculadora Solar Fotovoltaica"
+            desc="Estima el sistema ideal para tu hogar o finca según la radiación solar de tu región."
+          />
           <SolarCalculator />
         </section>
 
-        {/* Sección Mercado & Divisas */}
-        <section className="space-y-3">
-          <h2 className="text-xs font-mono uppercase tracking-wider text-slate-500">Mercado & Divisas (Colombia)</h2>
+        {/* Mercado, clima y paisajes */}
+        <section id="datos" className="scroll-mt-24 space-y-6">
+          <SectionHead eyebrow="05 · Datos de Colombia" title="Mercado & clima en tiempo real" />
           <MarketWidget />
+          <div className="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-2">
+            <WeatherWidget />
+            <ColombiaGallery />
+          </div>
         </section>
 
-        {/* Dashboard Multicolumna Panorámico */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Columna Izquierda: Clima y Playlist */}
-          <div className="lg:col-span-7 xl:col-span-8 space-y-8">
-            <section className="space-y-3">
-              <h2 className="text-xs font-mono uppercase tracking-wider text-slate-500">Monitoreo Meteorológico</h2>
-              <WeatherWidget />
-            </section>
+        {/* Audio ambiental */}
+        <section id="audio" className="scroll-mt-24 space-y-6">
+          <SectionHead eyebrow="06 · Atmósfera" title="Música para concentrarse" />
+          <AudioPlaylist />
+        </section>
 
-            <section className="space-y-3">
-              <h2 className="text-xs font-mono uppercase tracking-wider text-slate-500">Atmósfera & Audio Ambient (Bucle Infinito)</h2>
-              <AudioPlaylist />
-            </section>
-          </div>
+        {/* Contacto */}
+        <section id="contacto" className="scroll-mt-24">
+          <ContactSection />
+        </section>
 
-          {/* Columna Derecha: Galería Fotográfica Natural */}
-          <div className="lg:col-span-5 xl:col-span-4 h-full">
-            <section className="space-y-3 h-full">
-              <h2 className="text-xs font-mono uppercase tracking-wider text-slate-500">Entorno Natural</h2>
-              <ColombiaGallery />
-            </section>
-          </div>
-        </div>
-
-        <footer className="text-center text-xs font-mono text-slate-600 py-8 border-t border-slate-900">
-          © {new Date().getFullYear()} Seykarim R. Mestre Zalabata — Valledupar, Cesar, Colombia.
+        <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-900 py-8 font-mono text-xs text-slate-500">
+          <span>© {new Date().getFullYear()} Seykarim R. Mestre Zalabata — Valledupar, Cesar, Colombia.</span>
+          <a href="#inicio" className="hover:text-cyan-400">
+            Volver arriba ↑
+          </a>
         </footer>
-      </div>
-    </main>
+      </main>
+    </>
   );
 }

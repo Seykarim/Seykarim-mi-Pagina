@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Camera, RefreshCw, ChevronLeft, ChevronRight, MapPin } from 'lucide-react';
 
 interface LandscapePhoto {
@@ -52,6 +52,7 @@ const PHOTOS: LandscapePhoto[] = [
 export default function ColombiaGallery() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFading, setIsFading] = useState(false);
+  const touchX = useRef(0);
 
   const currentPhoto = PHOTOS[currentIndex];
 
@@ -81,15 +82,22 @@ export default function ColombiaGallery() {
     changePhoto(randomIndex);
   };
 
+  // Avance automático (se reinicia al cambiar de foto) y precarga de la siguiente
   useEffect(() => {
-    const timer = setInterval(() => {
-      handleNext();
-    }, 7000);
-    return () => clearInterval(timer);
+    new Image().src = PHOTOS[(currentIndex + 1) % PHOTOS.length].url;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const timer = setTimeout(handleNext, 7000);
+    return () => clearTimeout(timer);
   }, [currentIndex]);
 
   return (
-    <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-md flex flex-col justify-between gap-4 shadow-xl h-full">
+    <div
+      className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-md flex flex-col justify-between gap-4 shadow-xl h-full"
+      onKeyDown={(e) => {
+        if (e.key === 'ArrowLeft') handlePrev();
+        if (e.key === 'ArrowRight') handleNext();
+      }}
+    >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-slate-300 font-medium">
           <Camera className="w-4 h-4 text-emerald-400" />
@@ -105,12 +113,19 @@ export default function ColombiaGallery() {
         </button>
       </div>
 
-      {/* Frame de aprox 10x10 cm (340px x 340px en pantalla) */}
-      <div className="relative aspect-square w-full max-w-[340px] mx-auto rounded-2xl overflow-hidden border border-slate-800 group shadow-2xl">
+      {/* Marco que ocupa el alto disponible junto al clima; admite deslizar en móvil */}
+      <div
+        className="relative flex-1 min-h-[300px] w-full rounded-2xl overflow-hidden border border-slate-800 group shadow-2xl"
+        onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
+        onTouchEnd={(e) => {
+          const dx = e.changedTouches[0].clientX - touchX.current;
+          if (Math.abs(dx) > 40) (dx < 0 ? handleNext : handlePrev)();
+        }}
+      >
         <img
           src={currentPhoto.url}
-          alt={currentPhoto.title}
-          className={`w-full h-full object-cover transition-opacity duration-300 ${
+          alt={`${currentPhoto.title}, ${currentPhoto.location}`}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
             isFading ? 'opacity-20' : 'opacity-100'
           }`}
         />
@@ -137,14 +152,14 @@ export default function ColombiaGallery() {
         {/* Botones de navegación al pasar el mouse */}
         <button
           onClick={handlePrev}
-          className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-slate-950/70 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-slate-900"
+          className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-slate-950/70 text-white opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity hover:bg-slate-900"
           aria-label="Anterior"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
         <button
           onClick={handleNext}
-          className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-slate-950/70 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-slate-900"
+          className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-slate-950/70 text-white opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity hover:bg-slate-900"
           aria-label="Siguiente"
         >
           <ChevronRight className="w-4 h-4" />
@@ -162,7 +177,8 @@ export default function ColombiaGallery() {
                 ? 'w-6 bg-emerald-400'
                 : 'w-1.5 bg-slate-700 hover:bg-slate-500'
             }`}
-            aria-label={`Ver foto ${idx + 1}`}
+            aria-label={`Ver ${PHOTOS[idx].title}`}
+            aria-current={idx === currentIndex}
           />
         ))}
       </div>
