@@ -1,14 +1,14 @@
-import { Github } from 'lucide-react';
+import { Mail } from 'lucide-react';
 
-// Agrega aquí más canales de contacto (importa Mail o Linkedin desde lucide-react)
+// Agrega aquí más canales de contacto (importa Github o Linkedin desde lucide-react)
 const CONTACTS = [
   {
-    icon: Github,
-    label: 'GitHub',
-    detail: '@Seykarim',
-    href: 'https://github.com/Seykarim',
+    icon: Mail,
+    label: 'Correo',
+    detail: 'seykarimgumu@gmail.com',
+    href: 'mailto:seykarimgumu@gmail.com',
   },
-  // { icon: Mail, label: 'Correo', detail: 'tu-correo@ejemplo.com', href: 'mailto:tu-correo@ejemplo.com' },
+  // { icon: Github, label: 'GitHub', detail: '@Seykarim', href: 'https://github.com/Seykarim' },
   // { icon: Linkedin, label: 'LinkedIn', detail: '/in/tu-perfil', href: 'https://www.linkedin.com/in/tu-perfil' },
 ];
 
